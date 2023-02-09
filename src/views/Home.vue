@@ -82,10 +82,10 @@
           </div>
 
           <div style="margin: 10px 0">
-            <el-input style="width:200px"  placeholder="请输入编号" suffix-icon="el-icon-search"></el-input>
-            <el-input style="width:200px"  placeholder="请输入名称" suffix-icon="el-icon-message" class="ml-5"></el-input>
-            <el-input style="width:200px"  placeholder="请输入地址" suffix-icon="el-icon-position" class="ml-5"></el-input>
-            <el-button class="ml-5" type="primary">搜索</el-button>
+            <el-input style="width:200px"  placeholder="请输入编号" suffix-icon="el-icon-search" v-model="username"></el-input>
+<!--            <el-input style="width:200px"  placeholder="请输入名称" suffix-icon="el-icon-message" class="ml-5"></el-input>
+            <el-input style="width:200px"  placeholder="请输入地址" suffix-icon="el-icon-position" class="ml-5"></el-input>-->
+            <el-button class="ml-5" type="primary" @click="load">搜索</el-button>
           </div>
           <div style="margin: 10px 0">
             <el-button type="primary">新增<i class="el-icon-circle-plus-outline"></i></el-button>
@@ -95,12 +95,12 @@
           </div>
 
           <el-table :data="tableData" border stripe>
-            <el-table-column prop="number" label="名称" width="140">
-            </el-table-column>
-            <el-table-column prop="name" label="编号" width="120">
-            </el-table-column>
-            <el-table-column prop="address" label="地址">
-            </el-table-column>
+            <el-table-column prop="id" label="ID" width="80"></el-table-column>
+            <el-table-column prop="username" label="用户名" width="140"></el-table-column>
+            <el-table-column prop="nickname" label="昵称" width="120"></el-table-column>
+            <el-table-column prop="email" label="邮箱"></el-table-column>
+            <el-table-column prop="phone" label="电话"></el-table-column>
+            <el-table-column prop="address" label="地址"></el-table-column>
             <el-table-column>
               <template slot-scope="scope">
                 <el-button type="warning">编辑<i class="el-icon-edit"></i></el-button>
@@ -110,10 +110,13 @@
           </el-table>
           <div style="padding: 10px 0">
             <el-pagination
-                :page-sizes="[5, 10, 15, 20]"
-                :page-size="10"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+                :current-page = "pageNum"
+                :page-sizes="[2, 5, 10, 20]"
+                :page-size="pageSize"
                 layout="total, sizes, prev, pager, next, jumper"
-                :total="400">
+                :total="total">
             </el-pagination>
           </div>
         </el-main>
@@ -127,18 +130,26 @@
 export default {
   name: 'Home',
   data() {
-    const item = {
+/*    const item = {
       number: '0001',
       name: '油气井',
       address: '新疆塔里木盆地顺北油气田2号带'
-    };
+    };*/
     return {
-      tableData: Array(15).fill(item),
+      tableData: [],
+      total:0,
+      pageNum:1,
+      pageSize:2,
+      username:"",
       collapseBtnClass:'el-icon-s-fold',
       isCollapse:false,
       sideWidth:200,
       logoTextShow:true
     }
+  },
+  created() {
+    //请求分页查询数据
+    this.load()
   },
   methods:{
     collapse(){ //点击收缩按钮触发
@@ -151,6 +162,26 @@ export default {
         this.sideWidth =200
         this.collapseBtnClass = 'el-icon-s-fold'
       }
+    },
+    load() {
+      //请求分页查询数据
+      //res转为字符串用res.json()方法
+      fetch("http://localhost:9090/user/page?pageNum="+this.pageNum+"&pageSize="+this.pageSize+"&username="+this.username)
+          .then(res => res.json()).then(res =>{
+        console.log(res)
+        this.tableData = res.data
+        this.total = res.total
+      })
+    },
+    handleSizeChange(pageSize){
+      console.log(pageSize)
+      this.pageSize = pageSize
+      this.load()
+    },
+    handleCurrentChange(pageNum){
+      console.log(pageNum)
+      this.pageNum = pageNum
+      this.load()
     }
   }
 }
